@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full max-w-5xl mx-auto">
+    <!-- Back to Dashboard -->
+    <div class="mb-6">
+        <a href="/dashboard" class="text-xs sm:text-sm text-slate-400 hover:text-indigo-600 transition-colors flex items-center space-x-1">
+            <span>&larr;</span>
+            <span>Back to Dashboard</span>
+        </a>
+    </div>
+
+    <!-- Group Header Banner -->
+    <div class="bg-white p-8 rounded-3xl shadow-sm mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6 border border-purple-100">
+        <div>
+            <span class="text-[10px] font-bold text-indigo-700 tracking-wider uppercase bg-indigo-50 py-1 px-2.5 rounded-full border border-indigo-100">Group Circle</span>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 mt-2">{{ group.name }}</h1>
+            <p class="text-slate-500 text-sm mt-1.5">{{ group.description or "No description provided." }}</p>
+        </div>
+        <div>
+            <form action="/groups/{{ group.id }}/leave" method="POST" onsubmit="return confirm('Are you sure you want to leave this group?');">
+                <button type="submit" 
+                        class="py-2.5 px-4 bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-100 rounded-xl transition-all active:scale-[0.98] text-xs font-bold shadow-sm">
+                    Leave Group
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Group Dashboard Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left: Expenses and Balances Placeholders (2 Cols) */}
+        <div class="lg:col-span-2 space-y-8" 
+             x-data="{ 
+                 tab: 'expenses', 
+                 balances: [],
+                 loading: false,
+                 fetchBalances() {
+                     this.loading = true;
+                     fetch('/groups/{{ group.id }}/balances-json')
+                         .then(res => res.json())
+                         .then(data => {
+                             this.balances = data.balances;
+                             this.loading = false;
+                         })
+                         .catch(err => {
+                             console.error('Error fetching balances:', err);
+                             this.loading = false;
+                         });
+                 }
+             }"
+             @expense-updated.window="fetchBalances()"
+             x-init="fetchBalances()">
+            
+            <!-- Tab Navigation Headers -->
+            <div class="flex border-b border-slate-200 space-x-6">
+                <button @click="tab = 'expenses'" 
+                        :class="tab === 'expenses' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-400 hover:text-slate-600'"
+                        class="pb-4 border-b-2 text-xs sm:text-sm transition-all focus:outline-none flex items-center space-x-2">
+                    <span>💸</span>
+                    <span>Expenses</span>
+                </button>
+                <button @click="tab = 'balances'" 
+                        :class="tab === 'balances' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-400 hover:text-slate-600'"
+                        class="pb-4 border-b-2 text-xs sm:text-sm transition-all focus:outline-none flex items-center space-x-2">
+                    <span>⚖️</span>
+                    <span>Balances</span>
+                </button>
+                <button @click="tab = 'settle'" 
+                        :class="tab === 'settle' ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-slate-400 hover:text-slate-600'"
+                        class="pb-4 border-b-2 text-xs sm:text-sm transition-all focus:outline-none flex items-center space-x-2">
+                    <span>✅</span>
+                    <span>Settle Up</span>
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="pt-2">
+                <!-- Tab: Expenses -->
+                <div x-show="tab === 'expenses'" class="space-y-6" x-transition>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-md sm:text-lg font-bold text-slate-900">Recent Expenses</h3>
+                        <a href="/expenses/add?group_id={{ group.id }}" 
+                           class="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] text-xs">
+                            ＋ Add Expense
+                        </a>
+                    </div>
+                    
+                    {% if recent_expenses %}
+                        <div class="space-y-3">
+                            {% for expense in recent_expenses %}
+                                <a href="/expenses/{{ expense.id }}" 
+                                   class="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-100 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all hover:scale-[1.01] duration-150 block">
+                                    <div class="flex items-center space-x-4">
+                                        <!-- Category Icon bubble -->
+                                        <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/50 flex items-center justify-center text-lg">
+                                            {% if expense.category == 'food' %}🍔
+                                            {% elif expense.category == 'travel' %}✈️
+                                            {% elif expense.category == 'rent' %}🏠
+                                            {% else %}🧾{% endif %}
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900">{{ expense.title }}</h4>
+                                            <p class="text-[10px] sm:text-xs text-slate-400">
+                                                Paid by <span class="text-slate-700 font-semibold">{{ expense.paid_by_name }}</span> &middot; {{ expense.created_at.split('T')[0] }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs sm:text-sm font-extrabold text-slate-900">₹{{ "%.2f"|format(expense.amount) }}</span>
+                                        <p class="text-[10px] text-indigo-600 mt-0.5 capitalize font-medium">{{ expense.split_type }} split</p>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="text-center pt-2">
+                            <a href="/groups/{{ group.id }}/expenses" class="text-xs text-slate-400 hover:text-indigo-600 transition-colors font-bold">
+                                View All Expenses &rarr;
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Empty Expenses state -->
+                        <div class="bg-white p-10 rounded-3xl text-center border border-slate-100 shadow-sm">
+                            <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-150 text-lg">
+                                💸
+                            </div>
+                            <h3 class="text-md font-bold text-slate-900">No expenses yet</h3>
+                            <p class="text-xs text-slate-400 max-w-xs mx-auto mt-2 mb-4">
+                                Keep track of shared bills by creating your first group expense!
+                            </p>
+                            <a href="/expenses/add?group_id={{ group.id }}" 
+                               class="inline-block py-2.5 px-5 bg-slate-50 hover:bg-slate-100 text-indigo-600 font-bold rounded-xl border border-slate-200 transition-all active:scale-[0.98] text-xs">
+                                ＋ Add First Expense
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab: Balances -->
+                <div x-show="tab === 'balances'" class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm" x-cloak x-transition>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-md sm:text-lg font-bold text-slate-900">Group Balances</h3>
+                        <div class="flex items-center space-x-3">
+                            <button @click="fetchBalances()" class="text-xs text-indigo-600 hover:text-indigo-700 font-bold flex items-center space-x-1">
+                                <span>🔄</span>
+                                <span>Refresh</span>
+                            </button>
+                            <a href="/groups/{{ group.id }}/balances" class="text-xs text-slate-400 hover:text-indigo-600 transition-colors font-bold">
+                                Full Sheet &rarr;
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div x-show="loading" class="text-center py-6 text-sm text-slate-400">
+                        Loading balances...
+                    </div>
+                    
+                    <div x-show="!loading && balances.length === 0" class="text-center py-6 text-sm text-slate-400">
+                        No balances calculated.
+                    </div>
+                    
+                    <div x-show="!loading && balances.length > 0" class="space-y-3">
+                        <template x-for="item in balances" :key="item.user_id">
+                            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50/50 border border-slate-100/50">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold border border-indigo-100 flex items-center justify-center text-xs" x-text="item.name ? item.name[0].toUpperCase() : 'U'"></div>
+                                    <div>
+                                        <span class="text-xs sm:text-sm font-bold text-slate-900" x-text="item.name"></span>
+                                        <span x-show="item.user_id === '{{ session.get('user_id') }}'" class="text-[10px] text-indigo-600 font-semibold ml-1">(you)</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span x-show="item.balance > 0.01" class="text-xs sm:text-sm font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md" x-text="'+ ₹' + parseFloat(item.balance).toFixed(2)"></span>
+                                    <span x-show="item.balance < -0.01" class="text-xs sm:text-sm font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md" x-text="'- ₹' + parseFloat(Math.abs(item.balance)).toFixed(2)"></span>
+                                    <span x-show="item.balance >= -0.01 && item.balance <= 0.01" class="text-xs sm:text-sm font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Settled</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Tab: Settle Up -->
+                <div x-show="tab === 'settle'" class="bg-white p-10 rounded-3xl text-center border border-slate-100 shadow-sm" x-cloak x-transition>
+                    <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-150 text-lg">
+                        ✅
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Settle Debts</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-2 mb-6">
+                        Settle balances using the simplified debt algorithm. Pay off your debts with the fewest possible transactions!
+                    </p>
+                    <a href="/groups/{{ group.id }}/settle-up" 
+                       class="inline-block py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] text-xs">
+                        Go to Settle Up Sheet
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Group Roster & Invites (1 Col) -->
+        <div class="space-y-6">
+            
+            {/* Roster Card */}
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h3 class="text-md sm:text-lg font-bold text-slate-900 mb-6 flex items-center space-x-2">
+                    <span>👥</span>
+                    <span>Group Roster</span>
+                </h3>
+                
+                <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                    {% for member in members %}
+                        <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50/50 border border-slate-100/50">
+                            <div class="flex items-center space-x-3 truncate">
+                                <!-- Avatar bubble -->
+                                <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 font-bold border border-indigo-100 flex items-center justify-center text-xs sm:text-sm flex-shrink-0">
+                                    {{ member.name[0].upper() }}
+                                </div>
+                                <div class="truncate">
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate" title="{{ member.name }}">
+                                        {{ member.name }}
+                                        {% if member.user_id == session.get('user_id') %}
+                                            <span class="text-[10px] text-indigo-600 font-semibold ml-1">(you)</span>
+                                        {% endif %}
+                                    </h4>
+                                    <p class="text-[10px] sm:text-xs text-slate-400 truncate" title="{{ member.email }}">{{ member.email }}</p>
+                                </div>
+                            </div>
+                            <!-- Badge -->
+                            <div>
+                                {% if member.role == 'admin' %}
+                                    <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2 py-0.5 rounded-md">
+                                        Admin
+                                    </span>
+                                {% else %}
+                                    <span class="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200/50 px-2 py-0.5 rounded-md">
+                                        Member
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {/* Invite Member Card */}
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h3 class="text-md sm:text-lg font-bold text-slate-900 mb-2 flex items-center space-x-2">
+                    <span>✉️</span>
+                    <span>Invite Member</span>
+                </h3>
+                <p class="text-[10px] sm:text-xs text-slate-400 mb-4">Add a registered friend to this group by email address.</p>
+                
+                <form action="/groups/{{ group.id }}/invite" method="POST" class="space-y-4">
+                    <div>
+                        <input type="email" id="email" name="email" required
+                               class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-xs"
+                               placeholder="friend@example.com">
+                    </div>
+                    <button type="submit"
+                            class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] text-xs">
+                        Add to Group
+                    </button>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Supabase Realtime Client JS and Subscription -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const supabaseUrl = "{{ supabase_url }}";
+        const supabaseKey = "{{ supabase_key }}";
+        const groupId = "{{ group.id }}";
+        
+        if (supabaseUrl && supabaseKey) {
+            const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+            
+            // Subscribe to real-time events on expenses to refresh balances live
+            supabaseClient
+                .channel('group-balances-refresh')
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'expenses',
+                    filter: `group_id=eq.${groupId}`
+                }, (payload) => {
+                    console.log('Real-time update received:', payload);
+                    // Dispatch custom event to trigger Alpine.js refresh
+                    window.dispatchEvent(new CustomEvent('expense-updated'));
+                })
+                .subscribe();
+        }
+    });
+</script>
+{% endblock %}

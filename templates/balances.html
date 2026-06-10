@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full max-w-3xl mx-auto">
+    <!-- Back to Group -->
+    <div class="mb-6">
+        <a href="/groups/{{ group.id }}" class="text-xs sm:text-sm text-slate-400 hover:text-indigo-600 transition-colors flex items-center space-x-1">
+            <span>&larr;</span>
+            <span>Back to {{ group.name }}</span>
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 pb-6 border-b border-purple-100">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Group Balances</h1>
+            <p class="text-slate-500 text-sm mt-1">Net status of all members in {{ group.name }}</p>
+        </div>
+        <div>
+            <a href="/groups/{{ group.id }}/settle-up" 
+               class="flex items-center space-x-2 py-3 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] text-sm">
+                <span>✅</span>
+                <span>Settle Debts</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Balances List -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+        {% for member in members %}
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 transition-colors">
+                <div class="flex items-center space-x-4 truncate">
+                    <!-- Avatar bubble -->
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                        {{ member.name[0].upper() }}
+                    </div>
+                    <div class="truncate">
+                        <h4 class="text-sm font-bold text-slate-900 truncate">
+                            {{ member.name }}
+                            {% if member.user_id == session.get('user_id') %}
+                                <span class="text-[10px] text-indigo-600 font-semibold ml-1 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">You</span>
+                            {% endif %}
+                        </h4>
+                        <p class="text-[10px] sm:text-xs text-slate-400 truncate">{{ member.email }}</p>
+                    </div>
+                </div>
+                
+                <!-- Balance Status Pill -->
+                <div class="text-right">
+                    {% if member.net_balance > 0.01 %}
+                        <div class="py-1.5 px-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-bold">
+                            Owed ₹{{ "%.2f"|format(member.net_balance) }}
+                        </div>
+                    {% elif member.net_balance < -0.01 %}
+                        <div class="py-1.5 px-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-100 text-xs font-bold">
+                            Owes ₹{{ "%.2f"|format(-member.net_balance) }}
+                        </div>
+                    {% else %}
+                        <div class="py-1.5 px-3 rounded-xl bg-slate-100 text-slate-400 border border-slate-200/50 text-xs font-bold">
+                            Settled up
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full max-w-lg mx-auto">
+    <!-- Back Link -->
+    <div class="mb-6">
+        <a href="{% if expense %}/expenses/{{ expense.id }}{% else %}/groups/{{ group_id }}{% endif %}" 
+           class="text-xs sm:text-sm text-slate-400 hover:text-indigo-600 transition-colors flex items-center space-x-1">
+            <span>&larr;</span>
+            <span>Back</span>
+        </a>
+    </div>
+
+    <div class="glass p-8 rounded-3xl shadow-xl border border-purple-100 bg-white/80"
+         x-data="{
+             splitType: '{{ expense.split_type if expense else 'equal' }}',
+             amount: {{ expense.amount if expense else 0.0 }},
+             splits: {
+                 {% for m in members %}
+                     '{{ m.id }}': {{ splits.get(m.id, 0.0) }},
+                 {% endfor %}
+             },
+             get sumSplits() {
+                 return Object.values(this.splits).reduce((a, b) => a + (parseFloat(b) || 0), 0);
+             },
+             get remainder() {
+                 let amt = parseFloat(this.amount) || 0;
+                 if (this.splitType === 'exact') {
+                     return amt - this.sumSplits;
+                 } else if (this.splitType === 'percentage') {
+                     return 100 - this.sumSplits;
+                 }
+                 return 0;
+             }
+         }">
+         
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">
+                {% if expense %}Edit Expense{% else %}Add Expense{% endif %}
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-2">
+                {% if expense %}Modify the transaction and recalculate splits{% else %}Log a new shared expense for the group{% endif %}
+            </p>
+        </div>
+
+        <form action="{% if expense %}/expenses/{{ expense.id }}/edit{% else %}/expenses/add{% endif %}" method="POST" class="space-y-6">
+            <input type="hidden" name="group_id" value="{{ group_id }}">
+
+            <!-- Title -->
+            <div>
+                <label for="title" class="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Expense Title</label>
+                <input type="text" id="title" name="title" required value="{{ expense.title if expense else '' }}"
+                       class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm"
+                       placeholder="e.g. Groceries, Dinner, Cab ride">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Amount -->
+                <div>
+                    <label for="amount" class="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Amount (₹)</label>
+                    <input type="number" step="0.01" id="amount" name="amount" required x-model.number="amount"
+                           class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm"
+                           placeholder="0.00">
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label for="category" class="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Category</label>
+                    <select id="category" name="category"
+                            class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm">
+                        <option value="food" {% if expense and expense.category == 'food' %}selected{% endif %}>🍔 Food</option>
+                        <option value="travel" {% if expense and expense.category == 'travel' %}selected{% endif %}>✈️ Travel</option>
+                        <option value="rent" {% if expense and expense.category == 'rent' %}selected{% endif %}>🏠 Rent</option>
+                        <option value="other" {% if not expense or expense.category == 'other' %}selected{% endif %}>🧾 Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Paid By -->
+            <div>
+                <label for="paid_by" class="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Who Paid?</label>
+                <select id="paid_by" name="paid_by" required
+                        class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm">
+                    {% for member in members %}
+                        <option value="{{ member.id }}" 
+                                {% if expense and expense.paid_by == member.id %}selected
+                                {% elif not expense and member.id == session.get('user_id') %}selected{% endif %}>
+                            {{ member.name }} {% if member.id == session.get('user_id') %}(You){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Split Type Selection -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-3 uppercase tracking-wider">Split Option</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="relative flex items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 cursor-pointer transition-all"
+                           :class="splitType === 'equal' ? 'ring-2 ring-indigo-500/50 border-indigo-500 bg-indigo-500/5' : ''">
+                        <input type="radio" name="split_type" value="equal" x-model="splitType" class="sr-only">
+                        <span class="text-xs font-bold text-slate-600" :class="splitType === 'equal' ? 'text-indigo-600' : ''">Equally</span>
+                    </label>
+                    <label class="relative flex items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 cursor-pointer transition-all"
+                           :class="splitType === 'exact' ? 'ring-2 ring-indigo-500/50 border-indigo-500 bg-indigo-500/5' : ''">
+                        <input type="radio" name="split_type" value="exact" x-model="splitType" class="sr-only">
+                        <span class="text-xs font-bold text-slate-600" :class="splitType === 'exact' ? 'text-indigo-600' : ''">Exact Shares</span>
+                    </label>
+                    <label class="relative flex items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 cursor-pointer transition-all"
+                           :class="splitType === 'percentage' ? 'ring-2 ring-indigo-500/50 border-indigo-500 bg-indigo-500/5' : ''">
+                        <input type="radio" name="split_type" value="percentage" x-model="splitType" class="sr-only">
+                        <span class="text-xs font-bold text-slate-600" :class="splitType === 'percentage' ? 'text-indigo-600' : ''">Percentages</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dynamic splits section -->
+            <div x-show="splitType === 'exact' || splitType === 'percentage'" 
+                 class="space-y-4 pt-4 border-t border-slate-100" 
+                 x-cloak x-transition>
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Set Custom Splits</h3>
+                </div>
+                
+                <!-- Calculation Helper Indicator -->
+                <div class="p-3 rounded-xl text-xs flex justify-between items-center" 
+                     :class="Math.abs(remainder) < 0.01 ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'">
+                    <span x-text="splitType === 'exact' ? 'Total Allocated: ₹' + sumSplits.toFixed(2) : 'Total Allocated: ' + sumSplits.toFixed(2) + '%'"></span>
+                    <span class="font-bold" x-text="Math.abs(remainder) < 0.01 ? 'Fully allocated! ✓' : (splitType === 'exact' ? 'Remaining: ₹' + remainder.toFixed(2) : 'Remaining: ' + remainder.toFixed(2) + '%')"></span>
+                </div>
+
+                <!-- Input List -->
+                <div class="space-y-3 p-1 max-h-[200px] overflow-y-auto">
+                    {% for m in members %}
+                        <div class="flex items-center justify-between gap-4 p-2.5 rounded-2xl bg-slate-50/50 border border-slate-100/50">
+                            <span class="text-xs font-bold text-slate-700 truncate max-w-[200px]">{{ m.name }}</span>
+                            <div class="relative w-36">
+                                <span class="absolute left-3 top-2 text-xs text-slate-400 font-semibold" x-text="splitType === 'exact' ? '₹' : '%'"></span>
+                                <input type="number" step="any" name="split_{{ m.id }}" 
+                                       x-model.number="splits['{{ m.id }}']"
+                                       class="w-full pl-7 pr-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all text-xs text-right font-bold">
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex space-x-3">
+                <a href="{% if expense %}/expenses/{{ expense.id }}{% else %}/groups/{{ group_id }}{% endif %}" 
+                   class="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-center text-sm transition-all">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] text-sm">
+                    {% if expense %}Save Changes{% else %}Add Expense{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
