@@ -2,7 +2,8 @@ import React from 'react';
 import Image from 'next/image';
 
 export default function Hero({ onWatchDemo }) {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const rawBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = rawBackendUrl.replace(/\/login\/?$/, '').replace(/\/$/, '');
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-b from-purple-50/50 to-white py-20 lg:py-32">
       {/* Background blobs */}

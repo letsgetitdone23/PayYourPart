@@ -1,7 +1,8 @@
 import React from 'react';
 
 export default function Navbar() {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const rawBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = rawBackendUrl.replace(/\/login\/?$/, '').replace(/\/$/, '');
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);

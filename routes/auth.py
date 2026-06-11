@@ -105,3 +105,11 @@ def logout():
         pass
     session.clear()
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/login/register')
+def redirect_to_register():
+    return redirect(url_for('auth.register'))
+
+@auth_bp.route('/login/login')
+def redirect_to_login():
+    return redirect(url_for('auth.login'))
