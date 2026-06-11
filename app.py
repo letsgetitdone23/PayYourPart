@@ -48,6 +48,13 @@ app.register_blueprint(groups_bp)
 app.register_blueprint(expenses_bp)
 app.register_blueprint(settlements_bp)
 
+# Global Template Variables
+@app.context_processor
+def inject_globals():
+    return {
+        'FRONTEND_URL': os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    }
+
 # Core Routes
 @app.route('/')
 def index():

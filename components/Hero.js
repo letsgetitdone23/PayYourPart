@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 
 export default function Hero({ onWatchDemo }) {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-b from-purple-50/50 to-white py-20 lg:py-32">
       {/* Background blobs */}
@@ -25,7 +26,7 @@ export default function Hero({ onWatchDemo }) {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-            <a href="http://localhost:5000/register" className="text-center py-3.5 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-600/15 hover:shadow-indigo-600/25 active:scale-[0.98] transition-all text-sm">
+            <a href={`${backendUrl}/register`} className="text-center py-3.5 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-600/15 hover:shadow-indigo-600/25 active:scale-[0.98] transition-all text-sm">
               Start Free
             </a>
             <button 

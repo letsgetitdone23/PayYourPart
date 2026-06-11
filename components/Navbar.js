@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function Navbar() {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
     if (el) {
@@ -27,8 +29,8 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center space-x-4">
-          <a href="http://localhost:5000/login" className="text-sm font-medium text-slate-700 hover:text-indigo-600 transition-colors">Sign In</a>
-          <a href="http://localhost:5000/register" className="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-full shadow-sm shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-[0.98] transition-all">
+          <a href={`${backendUrl}/login`} className="text-sm font-medium text-slate-700 hover:text-indigo-600 transition-colors">Sign In</a>
+          <a href={`${backendUrl}/register`} className="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-full shadow-sm shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-[0.98] transition-all">
             Get Started
           </a>
         </div>
