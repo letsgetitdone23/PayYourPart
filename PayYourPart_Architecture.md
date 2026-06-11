@@ -395,22 +395,27 @@ SECRET_KEY=your-custom-super-secure-session-key
 
 PayYourPart is a hybrid repository consisting of a Python/Flask web app (backend logic and dashboard templates) and a Next.js static landing page. They are deployed to separate cloud hosts to ensure optimal loading speeds and zero infrastructure costs.
 
-### 9.1 Backend Web App Deployment (Render)
+### 9.1 Backend Web App Deployment (Render - Free Cardless Method)
 
-The core web app containing authentication, groups ledger, splits engine, and settlements is deployed to Render.
+The core web app containing authentication, groups ledger, splits engine, and settlements is deployed to Render as a Web Service. By creating a Web Service directly and choosing the Free plan, Render does not require credit card details.
 
 1. **GitHub Repository**: Push the project code to your GitHub account.
-2. **Create Render Web Service**: Go to the [Render Dashboard](https://render.com), click **New +** → **Blueprint**, and select your GitHub repository.
-3. **Configure Blueprint**:
-   - Render automatically reads the `render.yaml` configuration file to detect service settings.
-   - It will auto-populate the build command (`pip install -r requirements.txt`) and start command (`gunicorn app:app`).
-4. **Configure Environment Variables**:
-   - Render will prompt you to enter values for:
+2. **Create Web Service**: Go to the [Render Dashboard](https://render.com), click **New +** → **Web Service**.
+3. **Connect Repository**: Select your GitHub repository.
+4. **Configure Settings**:
+   - **Name**: `payyourpart-backend`
+   - **Language**: `Python`
+   - **Branch**: `main`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:app`
+   - **Instance Type**: Select **Free** ($0/mo).
+5. **Configure Environment Variables**:
+   - Scroll down and click **Advanced** → **Add Environment Variable** to set the following:
      - `SUPABASE_URL` = (Your Supabase project URL, e.g., `https://your-project.supabase.co`)
      - `SUPABASE_KEY` = (Your Supabase Anon API Key)
-     - `SECRET_KEY` = (Will auto-generate a secure random value, or you can supply your own)
+     - `SECRET_KEY` = (A secure random string for Flask cookie session encryption, e.g., `super_secret_session_key_123`)
      - `FRONTEND_URL` = (The URL of your deployed Next.js marketing page on Vercel, e.g., `https://payyourpart.vercel.app`)
-5. **Deploy**: Confirm the service creation. Render will build and deploy the Flask server, assigning a public `onrender.com` URL (e.g., `https://payyourpart-backend.onrender.com`). Note this URL for the frontend setup.
+6. **Deploy**: Click **Create Web Service**. Render will build and deploy the Flask server, assigning a public `onrender.com` URL (e.g., `https://payyourpart-backend.onrender.com`). Note this URL for the frontend setup.
 
 ---
 
