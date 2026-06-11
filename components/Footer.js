@@ -12,11 +12,7 @@ export default function Footer() {
           {/* Brand info (Col 1-4) */}
           <div className="md:col-span-4 space-y-6">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center">
-                <svg className="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
+              <img src="/logo.png" alt="PayYourPart Logo" className="w-8 h-8 object-contain" />
               <span className="text-lg font-bold tracking-tight text-brand-900">PayYourPart</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 max-w-xs leading-relaxed">

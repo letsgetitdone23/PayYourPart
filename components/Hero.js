@@ -11,16 +11,6 @@ export default function Hero({ onWatchDemo }) {
         
         {/* Left Column */}
         <div className="lg:col-span-7 text-left space-y-6">
-          {/* Badge */}
-          <div className="inline-flex items-center space-x-1 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">New Feature</span>
-            <span className="text-xs font-semibold text-indigo-700 flex items-center">
-              Automatic Scanning
-              <svg className="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-brand-900 leading-[1.1]">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Head from 'next/head';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -10,10 +10,14 @@ import StatsBar from '../components/StatsBar';
 import Comparison from '../components/Comparison';
 import CTA from '../components/CTA';
 import Footer from '../components/Footer';
-import WatchDemoModal from '../components/WatchDemoModal';
 
 export default function Home() {
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const handleWatchDemo = () => {
+    const el = document.getElementById('interactive-demo');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <>
@@ -27,7 +31,7 @@ export default function Home() {
         <Navbar />
         
         <main className="flex-grow">
-          <Hero onWatchDemo={() => setIsDemoOpen(true)} />
+          <Hero onWatchDemo={handleWatchDemo} />
           <Problem />
           <Features />
           <HowItWorks />
@@ -38,11 +42,6 @@ export default function Home() {
         </main>
 
         <Footer />
-
-        <WatchDemoModal 
-          isOpen={isDemoOpen} 
-          onClose={() => setIsDemoOpen(false)} 
-        />
       </div>
     </>
   );

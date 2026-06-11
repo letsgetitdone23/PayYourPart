@@ -77,7 +77,7 @@ export default function HowItWorks() {
             <div className="md:col-span-5 space-y-2 order-2">
               <h3 className="text-xl font-bold text-brand-900">Add Expenses</h3>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Type it in or scan the receipt. Split it evenly, by item, or by "the one who ate all the guac".
+                Type in the expense amount. Split it evenly, by percentages, or by exact shares among group members.
               </p>
             </div>
           </div>

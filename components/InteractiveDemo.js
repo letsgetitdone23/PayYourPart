@@ -95,7 +95,7 @@ export default function InteractiveDemo() {
   };
 
   return (
-    <section className="py-20 bg-white relative">
+    <section id="interactive-demo" className="py-20 bg-white relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 text-center">
         
         {/* Title */}

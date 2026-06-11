@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, Scan, RefreshCw, CreditCard, MessageSquare, LineChart } from 'lucide-react';
+import { Compass, Sparkles, RefreshCw, CreditCard, MessageSquare, LineChart } from 'lucide-react';
 
 export default function Features() {
   const features = [
@@ -9,9 +9,9 @@ export default function Features() {
       icon: Compass,
     },
     {
-      title: "Bill Scanning",
-      description: "Snap a photo of any receipt. Our AI reads items and assigns them to friends automatically.",
-      icon: Scan,
+      title: "Debt Simplification",
+      description: "Our greedy settlement engine simplifies multi-party debts down to the absolute minimum transactions.",
+      icon: Sparkles,
     },
     {
       title: "Recurring Bills",
